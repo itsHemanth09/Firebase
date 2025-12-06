@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Dashboard – Hostel Hunt</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">Hostel Hunt</div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="owner-dashboard.html">Owner Dashboard</a>
+        <a href="#" id="logoutLink" class="btn">Logout</a>
+    </nav>
+</header>
+
+<section class="dashboard">
+    <div class="dashboard-header">
+        <div>
+            <h2>Welcome, Owner</h2>
+            <p style="font-size:13px;color:#555;">
+                Yahan se aap apne hostels/PGs manage kar sakte hain.
+            </p>
+        </div>
+        <a href="add_property.html" class="btn-primary">+ Add New Property</a>
+    </div>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>City</th>
+            <th>Type</th>
+            <th>For</th>
+            <th>Rent (₹)</th>
+            <th>Available Beds</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody id="propertyRows">
+        <!-- Rows JS se add honge -->
+        </tbody>
+    </table>
+
+    <p id="dashboardMessage" class="small" style="margin-top:10px;color:#2563eb;"></p>
+</section>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAOKTqpJmN-43fDQrZVmfGCVlK_8JBTrvY",
+    authDomain: "hostelhunt-1df83.firebaseapp.com",
+    projectId: "hostelhunt-1df83",
+    storageBucket: "hostelhunt-1df83.firebasestorage.app",
+    messagingSenderId: "272376261500",
+    appId: "1:272376261500:web:719ada3e6b22090c5b12f9",
+    measurementId: "G-0G66K64YFS"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const rowsBody = document.getElementById("propertyRows");
+  const msg = document.getElementById("dashboardMessage");
+  const logoutLink = document.getElementById("logoutLink");
+
+  function addRow(p) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.title}</td>
+      <td>${p.city}</td>
+      <td>${p.type}</td>
+      <td>${p.forGender}</td>
+      <td>${p.rent}</td>
+      <td>${p.availableBeds}</td>
+      <td>${p.status || "Active"}</td>
+    `;
+    rowsBody.appendChild(tr);
+  }
+
+  async function loadProperties(ownerId) {
+    rowsBody.innerHTML = "";
+    msg.textContent = "Loading properties...";
+
+    try {
+      const q = query(
+        collection(db, "properties"),
+        where("ownerId", "==", ownerId)
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        msg.textContent = "No properties found. Add your first property!";
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        addRow(docSnap.data());
+      });
+
+      msg.textContent = "";
+    } catch (err) {
+      console.error(err);
+      msg.style.color = "red";
+      msg.textContent = err.message;
+    }
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("Please login as owner to view dashboard.");
+      window.location.href = "login.html";
+    } else {
+      loadProperties(user.uid);
+    }
+  });
+
+  logoutLink.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await signOut(auth);
+    window.location.href = "login.html";
+  });
+</script>
+
+</body>
+</html>
