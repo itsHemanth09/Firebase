@@ -110,6 +110,36 @@
       msg.textContent = err.message;
     }
   });
+  const msg1 = document.getElementById("loginMessage");
+
+function showMessage(text, type = "success") {
+  msg.innerText = text;
+  msg.style.display = "block";
+  msg.style.color = type === "success" ? "green" : "red";
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msg.innerText = "";
+
+  const formData = new FormData(form);
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+
+    showMessage("Login successful! Redirecting...", "success");
+
+    setTimeout(() => {
+      window.location.href = "owner-dashboard.html";
+    }, 2000);
+
+  } catch (error) {
+    showMessage(error.message, "error");
+  }
+});
+
 </script>
 
 </body>
