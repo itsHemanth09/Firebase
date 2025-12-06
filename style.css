@@ -299,3 +299,15 @@ header nav a:hover {
         margin-top: 8px;
     }
 }
+#loginMessage, #registerMessage {
+    font-weight: bold;
+    padding: 5px;
+    display: block;
+}
+#loginMessage.success, #registerMessage.success {
+    color: green;
+}
+
+#loginMessage.error, #registerMessage.error {
+    color: red;
+}
